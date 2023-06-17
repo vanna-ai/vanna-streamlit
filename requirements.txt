@@ -1,0 +1,3 @@
+git+https://github.com/vanna-ai/vanna-py.git@init
+snowflake-connector-python
+streamlit
