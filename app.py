@@ -13,10 +13,6 @@ st.set_page_config(layout="wide")
 st.image('https://ask.vanna.ai/static/img/vanna_with_text_transparent.png', width=300)
 st.write('[Vanna.AI](https://vanna.ai) is a natural language interface to data. Ask questions in natural language and get answers in seconds.')
 
-show_vanna = st.checkbox('Show Vanna Python package usage', value=True)
-
-if show_vanna:
-    st.code('import vanna as vn', language='python')
 
 my_question = st.text_input('Question', help='Enter a question in natural language')
 
@@ -26,6 +22,22 @@ if my_question == '' or my_question is None:
     st.info('Enter a question or try one of the examples below')
     if st.button("Who are the top 10 customers by Sales?"):
         my_question = "Who are the top 10 customers by Sales?"
+    elif st.button("Who are the top 5 customers by Sales?"):
+        my_question = "Who are the top 5 customers by Sales?"
+
+sql_tab, table_tab, plotly_tab, vanna_tab = st.tabs([':game_die: SQL', ':table_tennis_paddle_and_ball: Table', ':snake: Plotly Code', ':bulb: Vanna Code'])
+
+with vanna_tab:
+    st.text('Import Vanna')
+    st.code('import vanna as vn', language='python')
+    st.text('Generate SQL')
+    st.code(f"my_question='{my_question}'\nsql = vn.generate_sql(question=my_question)")
+    st.text('Run SQL')
+    st.code(f"df = vn.get_results(cs, my_db, sql)")
+    st.text('Generate Plotly Code')
+    st.code(f"plotly_code = vn.generate_plotly_code(question=my_question, sql=sql, df=df)")
+    st.text('Run Chart')
+    st.code(f"fig = vn.get_plotly_figure(plotly_code=plotly_code, df=df)")
 
 if my_question == '' or my_question is None:
     pass
@@ -37,19 +49,21 @@ else:
     st.session_state['my_question'] = my_question
     st.session_state['last_run'] = time.time()
 
-    st.header('SQL')
-    if show_vanna:
-        st.code(f"my_question='{my_question}'\nsql = vn.generate_sql(question=my_question)")
+    # with sql_tab:
+    #     st.header('SQL')            
+    
     with st.spinner('Generating SQL...'):
         sql = vn.generate_sql(question=my_question)
 
     if not sql:
-        st.error('SQL error')
+        with sql_tab:
+            st.error('SQL error')
     else:
-        st.code(sql, language='sql', line_numbers=True)
+        with sql_tab:
+            st.code(sql, language='sql', line_numbers=True)
 
-        st.header('Table')
-        st.code(f"df = vn.get_results(cs, my_db, sql)")
+        # with table_tab:
+            # st.header('Table')
 
         with st.spinner('Running SQL...'):
             conn = snowflake.connector.connect(
@@ -68,22 +82,24 @@ else:
         elif isinstance(df, str):
             st.error(df)
         else:
-            st.dataframe(df)
+            with table_tab:
+                st.text('First 100 rows of data')
+                st.dataframe(df.head(100))
 
-            st.header('Plotly Code')
-            if show_vanna:
-                st.code(f"plotly_code = vn.generate_plotly_code(question=my_question, sql=sql, df=df)")
+            # with plotly_tab:
+            #     st.header('Plotly Code')                
+
             with st.spinner('Generating Plotly Code...'):
-                plotly_code = vn.generate_plotly_code(question="Who are the top 10 customers by Sales?", sql=sql, df=df)
-                
+                plotly_code = vn.generate_plotly_code(question=my_question, sql=sql, df=df)
+
             if not plotly_code:
-                st.error('Plotly Code error')
+                with plotly_tab:
+                    st.error('Plotly Code error')
             else:
-                st.code(plotly_code, language='python')
+                with plotly_tab:
+                    st.code(plotly_code, language='python')
 
                 st.header('Chart')
-                if show_vanna:
-                    st.code(f"fig = vn.get_plotly_figure(plotly_code=plotly_code, df=df)")
                 with st.spinner('Running Chart...'):
                     fig = vn.get_plotly_figure(plotly_code=plotly_code, df=df)
                     
