@@ -2,6 +2,8 @@ import vanna as vn
 import snowflake.connector
 import streamlit as st
 import time
+from streamlit_ace import st_ace
+
 
 vn.api_key = st.secrets['vanna_api_key']
 vn.set_org('demo-sales')
@@ -13,6 +15,10 @@ st.set_page_config(layout="wide")
 st.image('https://ask.vanna.ai/static/img/vanna_with_text_transparent.png', width=300)
 st.write('[Vanna.AI](https://vanna.ai) is a natural language interface to data. Ask questions in natural language and get answers in seconds.')
 
+if st.session_state.get('mark_correct', False):
+    st.success('Thanks for marking the question as correct!')
+    st.session_state['mark_correct'] = False
+    st.stop()
 
 my_question = st.text_input('Question', help='Enter a question in natural language')
 
@@ -41,26 +47,28 @@ with vanna_tab:
 
 if my_question == '' or my_question is None:
     pass
-elif st.session_state.get('my_question') == my_question:
-    st.warning('Try a new question')
-elif last_run is not None and time.time() - last_run < 20:
+elif st.session_state.get('my_question') != my_question and last_run is not None and time.time() - last_run < 20:
     st.error('Wait 20 seconds before trying again')
 else:
-    st.session_state['my_question'] = my_question
-    st.session_state['last_run'] = time.time()
+    same_question_as_before = st.session_state.get('my_question') == my_question
 
-    # with sql_tab:
-    #     st.header('SQL')            
-    
-    with st.spinner('Generating SQL...'):
-        sql = vn.generate_sql(question=my_question)
+    if not same_question_as_before:
+        st.session_state['my_question'] = my_question
+        st.session_state['last_run'] = time.time()
+
+        with st.spinner('Generating SQL...'):
+            sql = vn.generate_sql(question=my_question)
+            st.session_state['sql'] = sql
+    else:
+        sql = st.session_state.get('sql')
 
     if not sql:
         with sql_tab:
             st.error('SQL error')
     else:
         with sql_tab:
-            st.code(sql, language='sql', line_numbers=True)
+            # st.code(sql, language='sql', line_numbers=True)
+            sql = st_ace(sql, language='sql', theme='twilight')
 
         # with table_tab:
             # st.header('Table')
@@ -106,4 +114,10 @@ else:
                 if fig is None:
                     st.error('Chart error')
                 else:
-                    st.plotly_chart(fig)                    
+                    st.plotly_chart(fig)
+
+                    def mark_correct():
+                        st.session_state['mark_correct'] = True
+
+                    st.button('Mark as correct', on_click=mark_correct)
+
