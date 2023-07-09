@@ -3,10 +3,11 @@ import snowflake.connector
 import streamlit as st
 import time
 from streamlit_ace import st_ace
+import model
 
 
 vn.api_key = st.secrets['vanna_api_key']
-vn.set_org('demo-sales')
+vn.set_org(st.secrets['org'])
 
 # st.sidebar.title('Organization')
 
@@ -15,12 +16,19 @@ st.set_page_config(layout="wide")
 st.image('https://ask.vanna.ai/static/img/vanna_with_text_transparent.png', width=300)
 st.write('[Vanna.AI](https://vanna.ai) is a natural language interface to data. Ask questions in natural language and get answers in seconds.')
 
+st.write(st.session_state)
+
+x = model.State(current_question='hello world')
+x.my_var = 5
+
+st.session_state['model'] = x
+
 if st.session_state.get('mark_correct', False):
     st.success('Thanks for marking the question as correct!')
     st.session_state['mark_correct'] = False
     st.stop()
 
-my_question = st.text_input('Question', help='Enter a question in natural language')
+my_question = st.text_input('Question', value=st.session_state.get('my_question', ''), help='Enter a question in natural language')
 
 last_run = st.session_state.get('last_run', None)
 
@@ -30,6 +38,9 @@ if my_question == '' or my_question is None:
         my_question = "Who are the top 10 customers by Sales?"
     elif st.button("Who are the top 5 customers by Sales?"):
         my_question = "Who are the top 5 customers by Sales?"
+
+if my_question == '' or my_question is None:
+    st.stop()
 
 sql_tab, table_tab, plotly_tab, vanna_tab = st.tabs([':game_die: SQL', ':table_tennis_paddle_and_ball: Table', ':snake: Plotly Code', ':bulb: Vanna Code'])
 
@@ -68,8 +79,13 @@ else:
     else:
         with sql_tab:
             # st.code(sql, language='sql', line_numbers=True)
-            sql = st_ace(sql, language='sql', theme='twilight')
+            updated_sql = st_ace(sql, language='sql', theme='twilight')
 
+            print("updated_sql", updated_sql)
+            if updated_sql != sql:
+                print("updated_sql != sql")
+                st.session_state['sql'] = updated_sql
+                sql = updated_sql
         # with table_tab:
             # st.header('Table')
 

@@ -1,2 +1,3 @@
 venv
-.streamlit/secrets.toml
+.streamlit/secrets*.toml
+__pycache__/model.cpython-311.pyc
