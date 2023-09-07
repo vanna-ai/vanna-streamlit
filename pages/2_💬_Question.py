@@ -3,25 +3,18 @@ import snowflake.connector
 import streamlit as st
 import time
 from streamlit_ace import st_ace
-import model
 
+st.set_page_config(layout="wide")
+
+st.write(st.session_state)
 
 vn.api_key = st.secrets['vanna_api_key']
 vn.set_org(st.secrets['org'])
 
 # st.sidebar.title('Organization')
 
-st.set_page_config(layout="wide")
-
 st.image('https://ask.vanna.ai/static/img/vanna_with_text_transparent.png', width=300)
 st.write('[Vanna.AI](https://vanna.ai) is a natural language interface to data. Ask questions in natural language and get answers in seconds.')
-
-st.write(st.session_state)
-
-x = model.State(current_question='hello world')
-x.my_var = 5
-
-st.session_state['model'] = x
 
 if st.session_state.get('mark_correct', False):
     st.success('Thanks for marking the question as correct!')
