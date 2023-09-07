@@ -1,109 +1,113 @@
-import vanna as vn
-import snowflake.connector
 import streamlit as st
+import vanna as vn
+import os
 import time
 
-vn.api_key = st.secrets['vanna_api_key']
-vn.set_org('demo-sales')
 
-# st.sidebar.title('Organization')
-
-st.set_page_config(layout="wide")
-
-st.image('https://ask.vanna.ai/static/img/vanna_with_text_transparent.png', width=300)
-st.write('[Vanna.AI](https://vanna.ai) is a natural language interface to data. Ask questions in natural language and get answers in seconds.')
+# Vanna Setup
+vn.set_api_key(st.secrets.get('vanna_api_key'))
+vn.set_model('thelook')
+vn.connect_to_bigquery(
+    project_id=st.secrets.get('gcp_project_id'),
+)
 
 
-my_question = st.text_input('Question', help='Enter a question in natural language')
+# FUNCTIONS
+@st.cache_data
+def generate_questions_cached():
+    return vn.generate_questions()
 
-last_run = st.session_state.get('last_run', None)
+@st.cache_data
+def generate_sql_cached(question: str):
+    return vn.generate_sql(question=question)
 
-if my_question == '' or my_question is None:
-    st.info('Enter a question or try one of the examples below')
-    if st.button("Who are the top 10 customers by Sales?"):
-        my_question = "Who are the top 10 customers by Sales?"
-    elif st.button("Who are the top 5 customers by Sales?"):
-        my_question = "Who are the top 5 customers by Sales?"
+@st.cache_data
+def run_sql_cached(sql: str):
+    return vn.run_sql(sql=sql)
 
-sql_tab, table_tab, plotly_tab, vanna_tab = st.tabs([':game_die: SQL', ':table_tennis_paddle_and_ball: Table', ':snake: Plotly Code', ':bulb: Vanna Code'])
+@st.cache_data
+def generate_plotly_code_cached(question, sql, df):
+    code = vn.generate_plotly_code(question=question, sql=sql, df=df)
+    return code
 
-with vanna_tab:
-    st.text('Import Vanna')
-    st.code('import vanna as vn', language='python')
-    st.text('Generate SQL')
-    st.code(f"my_question='{my_question}'\nsql = vn.generate_sql(question=my_question)")
-    st.text('Run SQL')
-    st.code(f"df = vn.get_results(cs, my_db, sql)")
-    st.text('Generate Plotly Code')
-    st.code(f"plotly_code = vn.generate_plotly_code(question=my_question, sql=sql, df=df)")
-    st.text('Run Chart')
-    st.code(f"fig = vn.get_plotly_figure(plotly_code=plotly_code, df=df)")
+@st.cache_data
+def generate_plot_cached(code, df):
+    return vn.get_plotly_figure(plotly_code=code, df=df)
 
-if my_question == '' or my_question is None:
-    pass
-elif st.session_state.get('my_question') == my_question:
-    st.warning('Try a new question')
-elif last_run is not None and time.time() - last_run < 20:
-    st.error('Wait 20 seconds before trying again')
-else:
-    st.session_state['my_question'] = my_question
-    st.session_state['last_run'] = time.time()
+@st.cache_data
+def generate_followup_cached(question, df):
+    return vn.generate_followup_questions(question=question, df=df)
 
-    # with sql_tab:
-    #     st.header('SQL')            
-    
+
+st.sidebar.title('Output Settings')
+st.sidebar.checkbox('Show SQL', value=True, key='show_sql')
+st.sidebar.checkbox('Show Table', value=True, key='show_table')
+st.sidebar.checkbox('Show Plotly Code', value=False, key='show_plotly_code')
+st.sidebar.checkbox('Show Chart', value=False, key='show_chart')
+st.sidebar.checkbox('Show Follow-up Questions', value=True, key='show_followup')
+
+st.title('Vanna AI')
+st.sidebar.write(st.session_state)
+
+assistant_message_suggested = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+if assistant_message_suggested.button("Click to show suggested questions"):
+    questions = generate_questions_cached()
+    for question in questions:
+        time.sleep(0.05)
+        assistant_message_suggested.write(question)
+
+my_question = st.chat_input("Ask me a question about your data")
+if my_question:
+    user_message = st.chat_message("user")
+    user_message.write(f"{my_question}")
+
+    sql = generate_sql_cached(question=my_question)
+
     with st.spinner('Generating SQL...'):
         sql = vn.generate_sql(question=my_question)
 
-    if not sql:
-        with sql_tab:
-            st.error('SQL error')
-    else:
-        with sql_tab:
-            st.code(sql, language='sql', line_numbers=True)
+    if sql:
+        if st.session_state.get('show_sql', True):
+            assistant_message_sql = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+            assistant_message_sql.code(sql, language='sql', line_numbers=True)
 
-        # with table_tab:
-            # st.header('Table')
+        with st.spinner('Running Query...'):
+            df = run_sql_cached(sql=sql)
 
-        with st.spinner('Running SQL...'):
-            conn = snowflake.connector.connect(
-                    user=st.secrets['snowflake_user'],
-                    password=st.secrets['snowflake_password'],
-                    account=st.secrets['snowflake_account'],
-                    database=st.secrets['snowflake_default_database'],
-                )
-
-            cs = conn.cursor()
-
-            df = vn.get_results(cs, st.secrets['snowflake_default_database'], sql)
-
-        if df is None:
-            st.error('Table error')
-        elif isinstance(df, str):
-            st.error(df)
-        else:
-            with table_tab:
-                st.text('First 100 rows of data')
-                st.dataframe(df.head(100))
-
-            # with plotly_tab:
-            #     st.header('Plotly Code')                
-
-            with st.spinner('Generating Plotly Code...'):
-                plotly_code = vn.generate_plotly_code(question=my_question, sql=sql, df=df)
-
-            if not plotly_code:
-                with plotly_tab:
-                    st.error('Plotly Code error')
-            else:
-                with plotly_tab:
-                    st.code(plotly_code, language='python')
-
-                st.header('Chart')
-                with st.spinner('Running Chart...'):
-                    fig = vn.get_plotly_figure(plotly_code=plotly_code, df=df)
-                    
-                if fig is None:
-                    st.error('Chart error')
+        if df is not None:
+            if st.session_state.get('show_table', True):
+                assistant_message_table = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+                if len(df) > 10:
+                    assistant_message_table.text('First 10 rows of data')
+                    assistant_message_table.dataframe(df.head(10))
                 else:
-                    st.plotly_chart(fig)                    
+                    assistant_message_table.dataframe(df)
+
+            code = generate_plotly_code_cached(question=my_question, sql=sql, df=df)
+
+            if st.session_state.get('show_plotly_code', False):
+                assistant_message_plotly_code = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+                assistant_message_plotly_code.code(code, language='python', line_numbers=True)                
+
+            if st.session_state.get('show_chart', True):
+                fig = generate_plot_cached(code=code, df=df)
+                assistant_message_chart = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+                if fig is not None:
+                    assistant_message_chart.plotly_chart(fig)
+                else:
+                    assistant_message_chart.error("I couldn't generate a chart")
+
+            if st.session_state.get('show_followup', True):
+                assistant_message_followup = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+                followup_questions = generate_followup_cached(question=my_question, df=df)
+
+                if len(followup_questions) > 0:
+                    assistant_message_followup.text('Here are some possible follow-up questions')
+                    # Print the first 5 follow-up questions
+                    for question in followup_questions[:5]:
+                        time.sleep(0.05)
+                        assistant_message_followup.write(question)
+
+    else:
+        assistant_message_error = st.chat_message("assistant", avatar="https://ask.vanna.ai/static/img/vanna_circle.png")
+        assistant_message_error.error("I wasn't able to generate SQL for that question")
