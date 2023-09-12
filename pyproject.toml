@@ -13,6 +13,7 @@ python-dotenv = "^1.0.0"
 kaleido = "0.2.1"
 vanna = {extras = ["bigquery"], version = "^0.0.23"}
 db-dtypes = "^1.1.1"
+streamlit-code-editor = "^0.1.10"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1453,6 +1453,20 @@ watchdog = {version = ">=2.1.5", markers = "platform_system != \"Darwin\""}
 snowflake = ["snowflake-snowpark-python"]
 
 [[package]]
+name = "streamlit-code-editor"
+version = "0.1.10"
+description = "React-ace editor customized for Streamlit"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "streamlit-code-editor-0.1.10.tar.gz", hash = "sha256:0d3036333ace39dd01ef44c02f1dfe86283d56e82a41c702d1f928f782dfb031"},
+    {file = "streamlit_code_editor-0.1.10-py3-none-any.whl", hash = "sha256:ad33b60cacab298efbf49ec4fd4c855bf198081b98bd0b367a12256ef0f7cf12"},
+]
+
+[package.dependencies]
+streamlit = ">=0.63"
+
+[[package]]
 name = "tabulate"
 version = "0.9.0"
 description = "Pretty-print tabular data"
@@ -1698,4 +1712,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.9.7 || >3.9.7,<4.0"
-content-hash = "420ad03b26881aaadca529b9a9edb89f3ffbce78a995e1b022275403595afd70"
+content-hash = "58aeccfbf5c2b101e346876fc1fcb632b2fa0de128f9490fc386b042d51fe4ec"

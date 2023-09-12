@@ -1,5 +1,6 @@
 import time
 import streamlit as st
+from code_editor import code_editor
 from utils.setup import setup_connexion, setup_session_state
 from utils.vanna_calls import (
     generate_questions_cached,
@@ -76,8 +77,13 @@ if my_question:
             )
 
         if happy_sql == "no":
-            fixed_sql_query = st.chat_input(placeholder="Fix the generated SQL query")
-            if fixed_sql_query is not None:
+            st.warning(
+                "Please fix the generated SQL code. Once you're done hit Shift + Enter to submit"
+            )
+            sql_response = code_editor(sql, lang="sql")
+            fixed_sql_query = sql_response["text"]
+
+            if fixed_sql_query != "":
                 df = run_sql_cached(sql=fixed_sql_query)
             else:
                 df = None
@@ -126,11 +132,15 @@ if my_question:
                 )
 
             if happy_plotly == "no":
-                code = st.chat_input(placeholder="Fix the generated Plotly code")
+                st.warning(
+                    "Please fix the generated Python code. Once you're done hit Shift + Enter to submit"
+                )
+                python_code_response = code_editor(code, lang="python")
+                code = python_code_response["text"]
             elif happy_plotly == "":
                 code = None
 
-            if code is not None:
+            if code is not None and code != "":
                 if st.session_state.get("show_chart", True):
                     assistant_message_chart = st.chat_message(
                         "assistant",
