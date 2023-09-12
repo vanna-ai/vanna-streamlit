@@ -1,3 +1,4 @@
 vanna[bigquery]
 streamlit
 streamlit_code_editor
+python-dotenv
