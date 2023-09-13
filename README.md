@@ -9,7 +9,7 @@ This project uses Poetry, so the first thing is to install it.
 pip install poetry
 ```
 
-Poetry allows to:
+Poetry allows to
 
 1. Install and manage the dependencies of the project
 2. Create a clean virtual environment that is fully isolated from your current Python environment
