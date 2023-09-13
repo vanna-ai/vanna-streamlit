@@ -1,5 +1,5 @@
 # Vanna.AI Streamlit App
-<img width="1392" alt="Screenshot 2023-06-23 at 3 49 45 PM" src="https://s11.gifyu.com/images/S4NHn.gif">
+<img width="1392" alt="Screenshot 2023-06-23 at 3 49 45 PM" src="./assets/vanna_demo.gif">
 
 ## Installation
 
