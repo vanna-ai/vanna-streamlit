@@ -1,5 +1,5 @@
 # Vanna.AI Streamlit App
-<img width="1392" alt="Screenshot 2023-06-23 at 3 49 45 PM" src="https://s11.gifyu.com/images/S4NHn.gif">
+<img width="1392" alt="Screenshot 2023-06-23 at 3 49 45 PM" src="./assets/vanna_demo.gif">
 
 ## Installation
 
@@ -9,7 +9,7 @@ This project uses Poetry, so the first thing is to install it.
 pip install poetry
 ```
 
-Poetry allows to:
+Poetry allows to
 
 1. Install and manage the dependencies of the project
 2. Create a clean virtual environment that is fully isolated from your current Python environment
