@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "vanna-streamlit"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "vanna_streamlit"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
+streamlit = "^1.26.0"
+python-dotenv = "^1.0.0"
+kaleido = "0.2.1"
+vanna = {extras = ["bigquery"], version = "^0.0.23"}
+db-dtypes = "^1.1.1"
+streamlit-code-editor = "^0.1.10"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.9.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
