@@ -1,44 +1,26 @@
 # Vanna.AI Streamlit App
 <img width="1392" alt="Screenshot 2023-06-23 at 3 49 45 PM" src="./assets/vanna_demo.gif">
 
-## Installation
-
-This project uses Poetry, so the first thing is to install it. 
+# Install
 
 ```bash
-pip install poetry
+python3 -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt
 ```
 
-Poetry allows to
+# Configure
+Modify the `setup_vanna` function in [vanna_calls.py](./vanna_calls.py) to use your desired Vanna setup.
 
-1. Install and manage the dependencies of the project
-2. Create a clean virtual environment that is fully isolated from your current Python environment
+You can configure secrets in `.streamlit/secrets.toml` and access them in your app using `st.secrets.get(...)`.
 
-
-Packages are listed in the `pyproject.toml` file. 
-
-To install them, simply run:
+# Run
 
 ```bash
-poetry install --with dev
+streamlit run app.py
 ```
 
-## Usage
-
-If you're running the app locally, please add a `.env` file at the root of the project with your crendentials:
-
-```bash
-VANNA_API_KEY=...
-GCP_PROJECT_ID=...
-```
-
-To create a Vanna API key, please refer to this [link](https://vanna.ai/).
-
-Then run the app with this command:
-
-```bash
-poetry run streamlit run app.py
-```
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
