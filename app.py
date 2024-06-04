@@ -1,6 +1,5 @@
 import time
 import streamlit as st
-from code_editor import code_editor
 from vanna_calls import (
     generate_questions_cached,
     generate_sql_cached,
